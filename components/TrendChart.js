@@ -1,16 +1,28 @@
 'use client';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { COUNTRY_COLORS, COUNTRIES } from '@/lib/constants';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 
 const LABEL_MAP = Object.fromEntries(COUNTRIES.map(c => [c.id, c.label]));
+const COUNTRY_ORDER = COUNTRIES.map(c => c.id);
 
 function shortDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-const COUNTRY_ORDER = COUNTRIES.map(c => c.id);
+function CustomLegend({ orderedCountries }) {
+  return (
+    <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2">
+      {orderedCountries.map(c => (
+        <span key={c} className="flex items-center gap-1 text-[11px] text-gray-600">
+          <span style={{ display: 'inline-block', width: 12, height: 2, backgroundColor: COUNTRY_COLORS[c] || '#94a3b8', borderRadius: 1 }} />
+          {LABEL_MAP[c] || c}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export default function TrendChart({ data, countries, metric, title }) {
   const isRevenue = metric === 'revenue';
@@ -29,7 +41,6 @@ export default function TrendChart({ data, countries, metric, title }) {
             formatter={(v, name) => [formatter(v), LABEL_MAP[name] || name]}
             labelFormatter={l => shortDate(l)}
           />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
           {orderedCountries.map(c => (
             <Line
               key={c}
@@ -43,6 +54,7 @@ export default function TrendChart({ data, countries, metric, title }) {
           ))}
         </LineChart>
       </ResponsiveContainer>
+      <CustomLegend orderedCountries={orderedCountries} />
     </div>
   );
 }
