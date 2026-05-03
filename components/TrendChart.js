@@ -26,12 +26,13 @@ export default function TrendChart({ data, countries, metric, title }) {
             formatter={(v, name) => [formatter(v), LABEL_MAP[name] || name]}
             labelFormatter={l => shortDate(l)}
           />
-          <Legend formatter={v => LABEL_MAP[v.split('.')[0]] || v} wrapperStyle={{ fontSize: 11 }} />
+          <Legend wrapperStyle={{ fontSize: 11 }} />
           {countries.map(c => (
             <Line
               key={c}
               type="monotone"
               dataKey={`${c}.${metric}`}
+              name={LABEL_MAP[c] || c}
               stroke={COUNTRY_COLORS[c] || '#94a3b8'}
               dot={false}
               strokeWidth={1.5}
