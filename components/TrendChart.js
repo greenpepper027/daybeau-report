@@ -26,7 +26,7 @@ export default function TrendChart({ data, countries, metric, title }) {
             formatter={(v, name) => [formatter(v), LABEL_MAP[name] || name]}
             labelFormatter={l => shortDate(l)}
           />
-          <Legend formatter={v => LABEL_MAP[v] || v} wrapperStyle={{ fontSize: 11 }} />
+          <Legend formatter={v => LABEL_MAP[v.split('.')[0]] || v} wrapperStyle={{ fontSize: 11 }} />
           {countries.map(c => (
             <Line
               key={c}
