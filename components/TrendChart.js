@@ -10,9 +10,12 @@ function shortDate(dateStr) {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
+const COUNTRY_ORDER = COUNTRIES.map(c => c.id);
+
 export default function TrendChart({ data, countries, metric, title }) {
   const isRevenue = metric === 'revenue';
   const formatter = isRevenue ? formatCurrency : formatNumber;
+  const orderedCountries = COUNTRY_ORDER.filter(id => countries.includes(id));
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
@@ -27,7 +30,7 @@ export default function TrendChart({ data, countries, metric, title }) {
             labelFormatter={l => shortDate(l)}
           />
           <Legend wrapperStyle={{ fontSize: 11 }} />
-          {countries.map(c => (
+          {orderedCountries.map(c => (
             <Line
               key={c}
               type="monotone"
