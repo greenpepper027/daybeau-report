@@ -21,7 +21,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== 'admin') {
+  if (!session || !['admin', 'editor'].includes(session.user.role)) {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
 

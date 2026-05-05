@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
   { href: '/',           label: '대시보드' },
-  { href: '/reports',    label: '월 리포트' },
+  { href: '/reports',    label: 'KPI 관리' },
   { href: '/marketing',  label: '마케팅' },
   { href: '/reviews',    label: '구글리뷰' },
 ];

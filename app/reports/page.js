@@ -150,12 +150,12 @@ export default function ReportsPage() {
                 monthData={monthData}
                 year={year}
                 month={month}
-                isAdmin={session?.user?.role === 'admin'}
+                isAdmin={session?.user?.role === 'admin' || session?.user?.role === 'editor'}
               />
               <MonthlyMemo
                 year={year}
                 month={month}
-                isAdmin={session?.user?.role === 'admin'}
+                isAdmin={session?.user?.role === 'admin' || session?.user?.role === 'editor'}
               />
             </>
       )}
