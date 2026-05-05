@@ -8,78 +8,15 @@ import {
   getCurrentYearMonth, getMonthRange,
   formatNumber, formatCurrency, formatPercent,
 } from '@/lib/utils';
+import TargetTracker from '@/components/TargetTracker';
+import MonthlyMemo from '@/components/MonthlyMemo';
 
-function MonthlyTable({ data, label }) {
-  const byCountry = useMemo(() => aggregateByCountry(data), [data]);
-  const total = useMemo(() => aggregateTotal(data), [data]);
-
-  // COUNTRIES 순서대로 정렬
-  const sorted = useMemo(() =>
-    COUNTRIES.map(c => byCountry.find(r => r.country === c.id)).filter(Boolean),
-    [byCountry]
+function YearlyComparison({ months }) {
+  const totals = useMemo(
+    () => months.map(m => ({ ...m, total: aggregateTotal(m.data) })),
+    [months]
   );
 
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100">
-        <h3 className="font-semibold text-gray-800 text-sm">{label}</h3>
-      </div>
-      {data.length === 0 ? (
-        <div className="text-center py-10 text-gray-400 text-sm">데이터가 없습니다</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 text-xs text-gray-500">
-                <th className="text-left px-4 py-3 font-medium">국가</th>
-                <th className="text-right px-4 py-3 font-medium">문의</th>
-                <th className="text-right px-4 py-3 font-medium">예약</th>
-                <th className="text-right px-4 py-3 font-medium">예약율</th>
-                <th className="text-right px-4 py-3 font-medium">수납</th>
-                <th className="text-right px-4 py-3 font-medium">매출(원)</th>
-                <th className="text-right px-4 py-3 font-medium">객단가(원)</th>
-                <th className="text-right px-4 py-3 font-medium">취소</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {sorted.map(row => {
-                const country = COUNTRIES.find(c => c.id === row.country);
-                return (
-                  <tr key={row.country} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800">{country?.label || row.country}</td>
-                    <td className="px-4 py-3 text-right text-gray-600">{formatNumber(row.inquiries)}</td>
-                    <td className="px-4 py-3 text-right text-gray-600">{formatNumber(row.bookings)}</td>
-                    <td className={`px-4 py-3 text-right font-medium ${row.bookingRate >= 0.5 ? 'text-green-600' : 'text-orange-500'}`}>
-                      {formatPercent(row.bookingRate)}
-                    </td>
-                    <td className="px-4 py-3 text-right text-gray-600">{formatNumber(row.payments)}</td>
-                    <td className="px-4 py-3 text-right font-medium text-blue-600">{formatCurrency(row.revenue)}</td>
-                    <td className="px-4 py-3 text-right font-medium text-purple-600">{formatCurrency(row.avgSpend)}</td>
-                    <td className="px-4 py-3 text-right text-gray-400">{formatNumber(row.cancellations || 0)}</td>
-                  </tr>
-                );
-              })}
-              <tr className="bg-gray-50 font-semibold text-gray-900 border-t-2 border-gray-200">
-                <td className="px-4 py-3">합계</td>
-                <td className="px-4 py-3 text-right">{formatNumber(total.inquiries)}</td>
-                <td className="px-4 py-3 text-right">{formatNumber(total.bookings)}</td>
-                <td className={`px-4 py-3 text-right ${total.bookingRate >= 0.5 ? 'text-green-600' : 'text-orange-500'}`}>
-                  {formatPercent(total.bookingRate)}
-                </td>
-                <td className="px-4 py-3 text-right">{formatNumber(total.payments)}</td>
-                <td className="px-4 py-3 text-right text-blue-600">{formatCurrency(total.revenue)}</td>
-                <td className="px-4 py-3 text-right text-purple-600">{formatCurrency(total.avgSpend)}</td>
-                <td className="px-4 py-3 text-right text-gray-400">{formatNumber(total.cancellations || 0)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function YearlyComparison({ yearData }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-100">
@@ -100,18 +37,18 @@ function YearlyComparison({ yearData }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {yearData.map(({ month, total }) => (
-              <tr key={month} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-800 sticky left-0 bg-white">{month}월</td>
-                <td className="px-4 py-3 text-right text-gray-600">{formatNumber(total.inquiries)}</td>
-                <td className="px-4 py-3 text-right text-gray-600">{formatNumber(total.bookings)}</td>
-                <td className={`px-4 py-3 text-right font-medium ${total.bookingRate >= 0.5 ? 'text-green-600' : 'text-orange-500'}`}>
-                  {formatPercent(total.bookingRate)}
+            {totals.map(m => (
+              <tr key={m.month} className="hover:bg-gray-50">
+                <td className="px-4 py-3 font-medium text-gray-800 sticky left-0 bg-white">{m.month}월</td>
+                <td className="px-4 py-3 text-right text-gray-600">{formatNumber(m.total.inquiries)}</td>
+                <td className="px-4 py-3 text-right text-gray-600">{formatNumber(m.total.bookings)}</td>
+                <td className={`px-4 py-3 text-right font-medium ${m.total.bookingRate >= 0.5 ? 'text-green-600' : 'text-orange-500'}`}>
+                  {formatPercent(m.total.bookingRate)}
                 </td>
-                <td className="px-4 py-3 text-right text-gray-600">{formatNumber(total.payments)}</td>
-                <td className="px-4 py-3 text-right font-medium text-blue-600">{formatCurrency(total.revenue)}</td>
-                <td className="px-4 py-3 text-right font-medium text-purple-600">{formatCurrency(total.avgSpend)}</td>
-                <td className="px-4 py-3 text-right text-gray-400">{formatNumber(total.cancellations || 0)}</td>
+                <td className="px-4 py-3 text-right text-gray-600">{formatNumber(m.total.payments)}</td>
+                <td className="px-4 py-3 text-right font-medium text-blue-600">{formatCurrency(m.total.revenue)}</td>
+                <td className="px-4 py-3 text-right font-medium text-purple-600">{formatCurrency(m.total.avgSpend)}</td>
+                <td className="px-4 py-3 text-right text-gray-400">{formatNumber(m.total.cancellations || 0)}</td>
               </tr>
             ))}
           </tbody>
@@ -137,7 +74,6 @@ export default function ReportsPage() {
     if (status === 'unauthenticated') router.push('/login');
   }, [status, router]);
 
-  // 월별 데이터
   useEffect(() => {
     if (status !== 'authenticated') return;
     const { start, end } = getMonthRange(year, month);
@@ -148,7 +84,6 @@ export default function ReportsPage() {
       .catch(() => setMonthLoading(false));
   }, [year, month, status]);
 
-  // 연간 데이터
   useEffect(() => {
     if (status !== 'authenticated' || activeTab !== 'yearly') return;
     setYearLoading(true);
@@ -161,8 +96,7 @@ export default function ReportsPage() {
         const byMonth = Array.from({ length: 12 }, (_, i) => {
           const m = i + 1;
           const { start: s, end: e } = getMonthRange(year, m);
-          const data = all.filter(r => r.date >= s && r.date <= e);
-          return { month: m, total: aggregateTotal(data) };
+          return { month: m, data: all.filter(r => r.date >= s && r.date <= e) };
         });
         setYearData(byMonth);
         setYearLoading(false);
@@ -180,8 +114,8 @@ export default function ReportsPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">월 리포트</h1>
-          <p className="text-sm text-gray-500 mt-0.5">국가별 월간 성과 요약</p>
+          <h1 className="text-xl font-bold text-gray-900">KPI 관리</h1>
+          <p className="text-sm text-gray-500 mt-0.5">월별 목표 설정 및 달성 현황</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <select value={year} onChange={e => setYear(Number(e.target.value))}
@@ -211,13 +145,25 @@ export default function ReportsPage() {
       {activeTab === 'monthly' && (
         monthLoading
           ? <div className="text-center py-20 text-gray-400 text-sm">불러오는 중...</div>
-          : <MonthlyTable data={monthData} label={`${year}년 ${month}월 리포트`} />
+          : <>
+              <TargetTracker
+                monthData={monthData}
+                year={year}
+                month={month}
+                isAdmin={session?.user?.role === 'admin'}
+              />
+              <MonthlyMemo
+                year={year}
+                month={month}
+                isAdmin={session?.user?.role === 'admin'}
+              />
+            </>
       )}
 
       {activeTab === 'yearly' && (
         yearLoading
           ? <div className="text-center py-20 text-gray-400 text-sm">불러오는 중...</div>
-          : <YearlyComparison yearData={yearData} />
+          : <YearlyComparison months={yearData} />
       )}
     </div>
   );
