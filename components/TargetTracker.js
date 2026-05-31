@@ -103,30 +103,71 @@ export default function TargetTracker({ monthData, year, month, isAdmin }) {
   }, [monthData]);
 
   const rows = useMemo(() => {
-    return COUNTRIES.map(c => {
-      const actual = byCountry[c.id];
-      const target = targets.find(t => t.country === c.id);
-      const actualPayments = actual?.payments || 0;
-      const actualRevenue = actual?.revenue || 0;
-      const actualAvgSpend = actualPayments > 0 ? actualRevenue / actualPayments : 0;
-      const targetBookings = target?.targetBookings || 0;
-      const targetAvgSpend = target?.targetAvgSpend || 0;
-      const targetRevenue = targetBookings * targetAvgSpend;
-      const dailyAvg = daysInMonth > 0 ? (targetBookings / daysInMonth) : 0;
-      const revenueRate = targetRevenue > 0 ? actualRevenue / targetRevenue : null;
-      const projectedRevenue = daysElapsed > 0 ? (actualRevenue / daysElapsed) * daysInMonth : null;
-      const projectedRevenueRate = targetRevenue > 0 && projectedRevenue !== null
-        ? projectedRevenue / targetRevenue : null;
+    const MERGED_IDS = ['english', 'indonesia'];
+    const HIDDEN_IDS = ['vietnam'];
+    const baseRows = COUNTRIES
+      .filter(c => !MERGED_IDS.includes(c.id) && !HIDDEN_IDS.includes(c.id))
+      .map(c => {
+        const actual = byCountry[c.id];
+        const target = targets.find(t => t.country === c.id);
+        const actualPayments = actual?.payments || 0;
+        const actualRevenue = actual?.revenue || 0;
+        const actualAvgSpend = actualPayments > 0 ? actualRevenue / actualPayments : 0;
+        const targetBookings = target?.targetBookings || 0;
+        const targetAvgSpend = target?.targetAvgSpend || 0;
+        const targetRevenue = targetBookings * targetAvgSpend;
+        const dailyAvg = daysInMonth > 0 ? (targetBookings / daysInMonth) : 0;
+        const revenueRate = targetRevenue > 0 ? actualRevenue / targetRevenue : null;
+        const projectedRevenue = daysElapsed > 0 ? (actualRevenue / daysElapsed) * daysInMonth : null;
+        const projectedRevenueRate = targetRevenue > 0 && projectedRevenue !== null
+          ? projectedRevenue / targetRevenue : null;
+        return {
+          country: c,
+          targetBookings, targetAvgSpend, targetRevenue, dailyAvg,
+          actualPayments, actualRevenue, actualAvgSpend,
+          revenueRate, projectedRevenue, projectedRevenueRate,
+          memo: target?.memo || '',
+          hasData: !!(actual || target),
+        };
+      })
+      .filter(r => r.hasData);
 
-      return {
-        country: c,
-        targetBookings, targetAvgSpend, targetRevenue, dailyAvg,
-        actualPayments, actualRevenue, actualAvgSpend,
-        revenueRate, projectedRevenue, projectedRevenueRate,
-        memo: target?.memo || '',
-        hasData: !!(actual || target),
-      };
-    }).filter(r => r.hasData);
+    // 영어권 + 인도네시아 합산 행
+    const mergedActualPayments = MERGED_IDS.reduce((s, id) => s + (byCountry[id]?.payments || 0), 0);
+    const mergedActualRevenue  = MERGED_IDS.reduce((s, id) => s + (byCountry[id]?.revenue  || 0), 0);
+    const mergedTargetBookings = MERGED_IDS.reduce((s, id) => s + (targets.find(t => t.country === id)?.targetBookings || 0), 0);
+    const mergedTargetRevenue  = MERGED_IDS.reduce((s, id) => {
+      const t = targets.find(t => t.country === id);
+      return s + ((t?.targetBookings || 0) * (t?.targetAvgSpend || 0));
+    }, 0);
+    const mergedHasData = MERGED_IDS.some(id => byCountry[id] || targets.find(t => t.country === id));
+
+    if (mergedHasData) {
+      const mergedTargetAvgSpend   = mergedTargetBookings > 0 ? mergedTargetRevenue / mergedTargetBookings : 0;
+      const mergedActualAvgSpend   = mergedActualPayments > 0 ? mergedActualRevenue / mergedActualPayments : 0;
+      const mergedDailyAvg         = daysInMonth > 0 ? mergedTargetBookings / daysInMonth : 0;
+      const mergedRevenueRate      = mergedTargetRevenue > 0 ? mergedActualRevenue / mergedTargetRevenue : null;
+      const mergedProjected        = daysElapsed > 0 ? (mergedActualRevenue / daysElapsed) * daysInMonth : null;
+      const mergedProjectedRate    = mergedTargetRevenue > 0 && mergedProjected !== null
+        ? mergedProjected / mergedTargetRevenue : null;
+      baseRows.push({
+        country: { id: 'english+indonesia', label: '영어권+인니' },
+        targetBookings: mergedTargetBookings,
+        targetAvgSpend: mergedTargetAvgSpend,
+        targetRevenue:  mergedTargetRevenue,
+        dailyAvg:       mergedDailyAvg,
+        actualPayments: mergedActualPayments,
+        actualRevenue:  mergedActualRevenue,
+        actualAvgSpend: mergedActualAvgSpend,
+        revenueRate:    mergedRevenueRate,
+        projectedRevenue:     mergedProjected,
+        projectedRevenueRate: mergedProjectedRate,
+        memo: '',
+        hasData: true,
+      });
+    }
+
+    return baseRows;
   }, [byCountry, targets, daysInMonth, daysElapsed]);
 
   const totals = useMemo(() => {
@@ -204,7 +245,7 @@ export default function TargetTracker({ monthData, year, month, isAdmin }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {COUNTRIES.map(c => {
+                {COUNTRIES.filter(c => c.id !== 'vietnam').map(c => {
                   const v = editValues[c.id] || {};
                   const calcRevenue = parseNum(v.targetBookings) * parseNum(v.targetAvgSpend);
                   return (

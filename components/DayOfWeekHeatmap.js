@@ -32,8 +32,8 @@ export default function DayOfWeekHeatmap({ data, selectedCountries }) {
   filtered.forEach(r => {
     const day = getDayOfWeek(r.date);
     if (!matrix[r.country]) matrix[r.country] = Array(7).fill(0);
-    matrix[r.country][day] += r.inquiries;
-    dayTotals[day] += r.inquiries;
+    matrix[r.country][day] += r.payments;
+    dayTotals[day] += r.payments;
   });
 
   const activeCountries = COUNTRIES.filter(c => matrix[c.id]);
@@ -45,9 +45,9 @@ export default function DayOfWeekHeatmap({ data, selectedCountries }) {
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="font-semibold text-gray-800 text-sm">요일별 문의 히트맵</h3>
+          <h3 className="font-semibold text-gray-800 text-sm">요일별 내원 히트맵</h3>
           <p className="text-xs text-gray-400 mt-0.5">
-            문의가 가장 많은 요일: <span className="font-medium text-blue-600">{DAYS[maxDayIdx]}요일</span>
+            내원이 가장 많은 요일: <span className="font-medium text-blue-600">{DAYS[maxDayIdx]}요일</span>
           </p>
         </div>
         <div className="flex items-center gap-1 text-xs text-gray-400">
