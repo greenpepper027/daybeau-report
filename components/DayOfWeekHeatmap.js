@@ -83,20 +83,24 @@ export default function DayOfWeekHeatmap({ data, selectedCountries }) {
             {activeCountries.map(c => {
               const row = matrix[c.id] || Array(7).fill(0);
               const rowTotal = row.reduce((a, b) => a + b, 0);
-              const rowAvg = seenDates.size > 0 ? rowTotal / seenDates.size : 0;
+              const rowDailyAvg = seenDates.size > 0 ? rowTotal / seenDates.size : 0;
               return (
                 <tr key={c.id}>
                   <td className="py-1 pr-3 font-medium text-gray-700">{c.label}</td>
-                  {row.map((val, i) => (
-                    <td key={i} className="py-1 px-0.5">
-                      <div className={`rounded text-center py-1.5 font-medium ${getColor(val, maxVal)}`}>
-                        {val > 0 ? val : ''}
-                      </div>
-                    </td>
-                  ))}
+                  {row.map((val, i) => {
+                    const avg = dayCounts[i] > 0 ? val / dayCounts[i] : 0;
+                    return (
+                      <td key={i} className="py-1 px-0.5">
+                        <div className={`rounded text-center py-1 font-medium ${getColor(val, maxVal)}`}>
+                          <div>{val > 0 ? val : ''}</div>
+                          {avg > 0 && <div className="text-[9px] opacity-75 leading-tight">{avg.toFixed(1)}</div>}
+                        </div>
+                      </td>
+                    );
+                  })}
                   <td className="py-1 text-right pl-3">
                     <div className="font-semibold text-gray-700">{rowTotal}</div>
-                    <div className="text-gray-400 text-[10px]">{rowAvg.toFixed(1)}/일</div>
+                    <div className="text-gray-400 text-[10px]">{rowDailyAvg.toFixed(1)}/일</div>
                   </td>
                 </tr>
               );
