@@ -28,13 +28,21 @@ export default function DayOfWeekHeatmap({ data, selectedCountries }) {
 
   const matrix = {};
   const dayTotals = Array(7).fill(0);
+  const dayCounts = Array(7).fill(0);  // 요일별 날짜 등장 횟수
+  const seenDates = new Set();
 
   filtered.forEach(r => {
     const day = getDayOfWeek(r.date);
     if (!matrix[r.country]) matrix[r.country] = Array(7).fill(0);
     matrix[r.country][day] += r.payments;
     dayTotals[day] += r.payments;
+    if (!seenDates.has(r.date)) {
+      seenDates.add(r.date);
+      dayCounts[day]++;
+    }
   });
+
+  const dayAvgs = dayTotals.map((total, i) => dayCounts[i] > 0 ? total / dayCounts[i] : 0);
 
   const activeCountries = COUNTRIES.filter(c => matrix[c.id]);
   const allValues = Object.values(matrix).flatMap(row => row);
@@ -100,6 +108,19 @@ export default function DayOfWeekHeatmap({ data, selectedCountries }) {
               ))}
               <td className="pt-2 text-right font-bold text-gray-800 pl-3">
                 {dayTotals.reduce((a, b) => a + b, 0)}
+              </td>
+            </tr>
+            <tr>
+              <td className="pt-1 pr-3 text-xs font-semibold text-gray-400">일평균</td>
+              {dayAvgs.map((v, i) => (
+                <td key={i} className={`pt-1 text-center text-xs ${i === maxDayIdx ? 'text-blue-500 font-semibold' : 'text-gray-400'}`}>
+                  {v > 0 ? v.toFixed(1) : '-'}
+                </td>
+              ))}
+              <td className="pt-1 text-right text-xs text-gray-400 pl-3">
+                {dayCounts.some(c => c > 0)
+                  ? (dayTotals.reduce((a, b) => a + b, 0) / [...seenDates].length).toFixed(1)
+                  : '-'}
               </td>
             </tr>
           </tfoot>
