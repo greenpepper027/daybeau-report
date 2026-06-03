@@ -83,6 +83,7 @@ export default function DayOfWeekHeatmap({ data, selectedCountries }) {
             {activeCountries.map(c => {
               const row = matrix[c.id] || Array(7).fill(0);
               const rowTotal = row.reduce((a, b) => a + b, 0);
+              const rowAvg = seenDates.size > 0 ? rowTotal / seenDates.size : 0;
               return (
                 <tr key={c.id}>
                   <td className="py-1 pr-3 font-medium text-gray-700">{c.label}</td>
@@ -93,7 +94,10 @@ export default function DayOfWeekHeatmap({ data, selectedCountries }) {
                       </div>
                     </td>
                   ))}
-                  <td className="py-1 text-right pl-3 font-semibold text-gray-700">{rowTotal}</td>
+                  <td className="py-1 text-right pl-3">
+                    <div className="font-semibold text-gray-700">{rowTotal}</div>
+                    <div className="text-gray-400 text-[10px]">{rowAvg.toFixed(1)}/일</div>
+                  </td>
                 </tr>
               );
             })}
